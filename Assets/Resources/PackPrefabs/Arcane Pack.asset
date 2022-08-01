@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b7614c6f3453418f923ac7ddd3ee08f, type: 3}
+  m_Name: Arcane Pack
+  m_EditorClassIdentifier: 
+  PossibleCards:
+  - {fileID: 1792805851789838965, guid: 49abbb1d966164b74b774ba61d3a25e8, type: 3}
+  - {fileID: 719460409460861164, guid: 4cc871585f195422bacf3877ba9dbce4, type: 3}
+  - {fileID: 7211988237770283494, guid: d7bbee862c30b463fa8593a7cb1f642f, type: 3}
+  Rarities: 0a0000000300000001000000
+  rarityTotal: 14
+  packSize: 5
+  packObjPrefab: {fileID: 2576007227432717138, guid: 863cdc131a45b40ee8739678801f15ee, type: 3}

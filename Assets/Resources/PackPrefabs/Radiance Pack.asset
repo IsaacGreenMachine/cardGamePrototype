@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b7614c6f3453418f923ac7ddd3ee08f, type: 3}
+  m_Name: Radiance Pack
+  m_EditorClassIdentifier: 
+  PossibleCards:
+  - {fileID: 7211988237770283494, guid: d7bbee862c30b463fa8593a7cb1f642f, type: 3}
+  - {fileID: 7137953076547198194, guid: 08eac56b280934d3a893c980e919d4b4, type: 3}
+  - {fileID: 719460409460861164, guid: 4cc871585f195422bacf3877ba9dbce4, type: 3}
+  Rarities: 070000000900000004000000
+  rarityTotal: 20
+  packSize: 6
+  packObjPrefab: {fileID: 5457890659286660624, guid: 9ecdfaab6dfd742d3a974df71c500d74, type: 3}

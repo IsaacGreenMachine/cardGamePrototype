@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b7614c6f3453418f923ac7ddd3ee08f, type: 3}
+  m_Name: Tide Pack
+  m_EditorClassIdentifier: 
+  PossibleCards:
+  - {fileID: 3566385776190755266, guid: f5c69f760b76d45faae231b05e1e5188, type: 3}
+  - {fileID: 7137953076547198194, guid: 08eac56b280934d3a893c980e919d4b4, type: 3}
+  Rarities: 1e00000001000000
+  rarityTotal: 31
+  packSize: 4
+  packObjPrefab: {fileID: 7092991544514153111, guid: 29677eeb61b1a43dfad9c05ca4c16e4f, type: 3}

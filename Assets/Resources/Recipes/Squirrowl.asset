@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4da75abc9a1ee43b383c31308901087f, type: 3}
+  m_Name: Squirrowl
+  m_EditorClassIdentifier: 
+  Ingredients: 0200000002000000
+  stringIngredients:
+  - GhostDog
+  - GhostDog
+  Result: 3
+  GOResult: {fileID: 7211988237770283494, guid: d7bbee862c30b463fa8593a7cb1f642f, type: 3}
+  craftTime: 297

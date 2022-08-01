@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b7614c6f3453418f923ac7ddd3ee08f, type: 3}
+  m_Name: Circuit Pack
+  m_EditorClassIdentifier: 
+  PossibleCards:
+  - {fileID: 3566385776190755266, guid: f5c69f760b76d45faae231b05e1e5188, type: 3}
+  - {fileID: 7137953076547198194, guid: 08eac56b280934d3a893c980e919d4b4, type: 3}
+  - {fileID: 7211988237770283494, guid: d7bbee862c30b463fa8593a7cb1f642f, type: 3}
+  Rarities: 0a0000000100000002000000
+  rarityTotal: 13
+  packSize: 3
+  packObjPrefab: {fileID: 8374881580545008010, guid: 6018425bf016248abbc76919e30c3e95, type: 3}

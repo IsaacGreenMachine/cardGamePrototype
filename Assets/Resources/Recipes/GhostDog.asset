@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4da75abc9a1ee43b383c31308901087f, type: 3}
+  m_Name: GhostDog
+  m_EditorClassIdentifier: 
+  Ingredients: 0100000001000000
+  stringIngredients:
+  - Bunicorn
+  - Bunicorn
+  Result: 2
+  GOResult: {fileID: 3566385776190755266, guid: f5c69f760b76d45faae231b05e1e5188, type: 3}
+  craftTime: 500
