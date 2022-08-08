@@ -53,7 +53,6 @@ public class manager_gameplay : MonoBehaviour
 
         // instantiate heldStack stack
         heldStack = CreateStack();
-        allStacks.Remove(heldStack);
         // instantiate camera object
         cam = Camera.main;
 
@@ -63,17 +62,8 @@ public class manager_gameplay : MonoBehaviour
         cardList = DefineCardList();
         // setup for renderLayer
         currentRenderLayer = (cardList.Count * 2) + 1;
-        // Debug.Log("card list: ");
 
         // spawn two of each available card
-        /*
-        foreach (var obj in cardList)
-        {
-            // Debug.Log(string.Format("card name: {1} : card: {0}", obj.Value, obj.Key));
-            SpawnCard(obj.Value, new Vector2(Random.Range(-5.5f, 5.5f), Random.Range(-2.5f, 2.5f)));
-            SpawnCard(obj.Value, new Vector2(Random.Range(-5.5f, 5.5f), Random.Range(-2.5f, 2.5f)));
-        }
-        */
         // instantiate comboList
         comboList = DefineComboList();
         // instantiate packList
@@ -82,49 +72,14 @@ public class manager_gameplay : MonoBehaviour
         {
             SpawnPack(packPrefab, new Vector2(Random.Range(-5.5f, 5.5f), Random.Range(-2.5f, 2.5f)));
         }
+        // keeps current render layer from exploding
+        InvokeRepeating("NormalizeRenderLayers", 20f, 20f);
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        // updating progress bar on combining stacks
-        foreach(Stack stack in allStacks.ToList())
-        {
-            if (stack.combining.Item1)
-            {
-                // Debug.Log("checking if cards can combine");
-                if (CardsCanCombine(stack).Item1)
-                {
-                    UpdateCombine(stack);
-                }
-                else
-                    StopCombining(stack);
-            }
-        }
-
-        // card bumping
-        foreach(GameObject obj in allObjects)
-        {
-
-            // ************************************************************************
-
-            // make sure this only happens to objects that are not stacked (distinguish between cards and packs)
-            // get bottom object of collision list
-            // move objects away from that card (make sure stacks stick together)
-            //
-            if (obj.GetComponent<Collider2D>().OverlapCollider(conFil, collList) > 0)
-            {
-                Debug.Log("coll list for: " + obj.name);
-                foreach (Collider2D coll in collList)
-                {
-                    Debug.Log(coll.gameObject.name);
-                }
-            }
-            collList.Clear();
-        }
-
-        // left mouse handing for cards and packs
         // if left mouse is not down
         if (!Input.GetMouseButton(0))
         {
@@ -145,95 +100,150 @@ public class manager_gameplay : MonoBehaviour
                     // creating new stack since StackCards is cleared on MouseUp
                     StackCards(heldStack, CreateStack());
                 }
+                heldStack = CreateStack();
                 // events after card was dropped are now done
                 MouseRelease = 0;
                 cardOffset = 0;
             }
         }
 
-        // if the left mouse is down and card is currently held
+        // left mouse is down and cards are held
         else if (heldStack.cards.Count != 0)
         {
-            // move card stack to mouse
-            float i = 0;
-            // not using ArrangeCards() to keep currentRenderLayer from being added each frame
-            foreach (GameObject card in heldStack.cards.ToList())
-            {
-                card.transform.position = new Vector3(worldPos.x, worldPos.y + cardOffset - i, 0);
-                i += 0.5f;
-            }
+            // move card[0] to mouse (offset so card is centered horiz. but not vertically)
+            heldStack.cards[0].transform.position = new Vector3(worldPos.x, worldPos.y + cardOffset, 0);
+            // move all other cards to adjust
+            ArrangeCards(heldStack, false);
         }
 
-        // if mouse down and pack is currently held
+        // left mouse down and pack is currently held
         else if (heldPack != null)
         {
             heldPack.packObj.transform.position = new Vector3(worldPos.x, worldPos.y + cardOffset, 0);
         }
 
-        // if left mouse button down and no card is held
+        // left mouse is down and no card/pack is held
         else
         {
             if (hoverObjs.Length > 0)
             {
-                GameObject frontObj = GetFrontObj(hoverObjs);
-                List<System.Type> compList = GetCompList(frontObj);
-                // object is a card
-                if (compList.Contains(typeof(card_gameplay)))
+                GameObject front = GetFrontObj(hoverObjs);
+                if (front != null)
                 {
-                    int cardPos = frontObj.GetComponent<card_gameplay>().stack.cards.IndexOf(frontObj);
-                    Stack oldStack = frontObj.GetComponent<card_gameplay>().stack;
-                    // gets all cards from grabbed card to bottom of stack and adds them to "heldStack"
-                    heldStack = StackCards(CreateStack(frontObj.GetComponent<card_gameplay>().stack.cards.GetRange(cardPos, frontObj.GetComponent<card_gameplay>().stack.cards.Count - cardPos)), heldStack);
-                    allStacks.Remove(heldStack);
-
-                    var combining = CardsCanCombine(oldStack);
-                    if (combining.Item1)
+                    // object is a card
+                    if (GetObjType(front) == "card")
                     {
-                        BeginCombining(oldStack, combining.Item2);
+                        int cardPos = front.GetComponent<card_gameplay>().stack.cards.IndexOf(front);
+                        Stack oldStack = front.GetComponent<card_gameplay>().stack;
+                        // gets all cards from grabbed card to bottom of stack and adds them to "heldStack"
+                        heldStack = StackCards(CreateStack(front.GetComponent<card_gameplay>().stack.cards.GetRange(cardPos, front.GetComponent<card_gameplay>().stack.cards.Count - cardPos)), heldStack);
+                        var combining = CardsCanCombine(oldStack);
+                        if (combining.Item1)
+                        {
+                            BeginCombining(oldStack, combining.Item2);
+                        }
+
+                        // to remove single card from stack:
+                        /*
+                        if (heldStack.GetComponent<card_gameplay>().stack.Count > 1)
+                            RemoveFromStack(heldStack);
+                        */
+
+                        // checks if card was recently dropped
+                        MouseRelease = 1;
+                        cardOffset = heldStack.cards[0].transform.position.y - worldPos.y;
                     }
 
-                    // to remove single card from stack:
-                    /*
-                    if (heldStack.GetComponent<card_gameplay>().stack.Count > 1)
-                        RemoveFromStack(heldStack);
-                    */
-
-                    // checks if card was recently dropped
-                    MouseRelease = 1;
-                    cardOffset = heldStack.cards[0].transform.position.y - worldPos.y;
-                }
-
-                else if (compList.Contains(typeof(pack_gameplay)))
-                {
-                    Pack pack = frontObj.GetComponent<pack_gameplay>().pack;
-                    cardOffset = pack.packObj.transform.position.y - worldPos.y;
-                    heldPack = pack;
-                    pack.packObj.GetComponent<SpriteRenderer>().sortingOrder = currentRenderLayer;
-                    currentRenderLayer++;
+                    else if (GetObjType(front) == "pack")
+                    {
+                        Pack pack = front.GetComponent<pack_gameplay>().pack;
+                        cardOffset = pack.packObj.transform.position.y - worldPos.y;
+                        heldPack = pack;
+                        UpdateRenderLayer(pack.packObj);
+                    }
                 }
             }
         }
 
+        // right mouse is up
         if (!Input.GetMouseButton(1))
         {
             packFlag = 0;
         }
 
+        // right mouse is down
         else
         {
-            GameObject frontObj = GetFrontObj(hoverObjs);
-            if (frontObj != null && packFlag == 0 && GetCompList(frontObj).Contains(typeof(pack_gameplay)))
+            if (hoverObjs.Length > 0)
             {
-                Pack pack = frontObj.GetComponent<pack_gameplay>().pack;
-                SpawnCard(pack.Contents[0], new Vector2(Random.Range(-5.5f, 5.5f), Random.Range(-2.5f, 2.5f)));
-                pack.Contents.RemoveAt(0);
-                packFlag = 1;
-                if (frontObj.GetComponent<pack_gameplay>().pack.Contents.Count == 0)
-                    DeletePack(pack);
+                GameObject front = GetFrontObj(hoverObjs);
+                if (front != null && packFlag == 0 && GetObjType(front) == "pack" && !Input.GetMouseButton(0))
+                {
+                    Pack pack = front.GetComponent<pack_gameplay>().pack;
+                    SpawnCard(pack.Contents[0], new Vector2(Random.Range(-5.5f, 5.5f), Random.Range(-2.5f, 2.5f)));
+                    pack.Contents.RemoveAt(0);
+                    packFlag = 1;
+                    if (front.GetComponent<pack_gameplay>().pack.Contents.Count == 0)
+                        DeletePack(pack);
+                }
             }
         }
 
+        // updating progress bar on combining stacks
+        foreach (Stack stack in allStacks.ToList())
+        {
+            if (stack.combining.Item1)
+            {
+                if (stack != heldStack && CardsCanCombine(stack).Item1)
+                {
+                    UpdateCombine(stack);
+                }
+                else
+                {
+                    StopCombining(stack);
+                }
+            }
+        }
 
+        // card/stack/pack bumping
+        foreach (GameObject obj in allObjects)
+        {
+            if (obj.GetComponent<Collider2D>().OverlapCollider(conFil, collList) > 0)
+            {
+                foreach (Collider2D coll in collList)
+                {
+                    if (heldStack != null && heldStack.cards.Contains(coll.gameObject))
+                        continue;
+                    if (heldPack != null && GetObjType(coll.gameObject) == "pack" && heldPack == coll.gameObject.GetComponent<pack_gameplay>().pack)
+                        continue;
+                    // current object is above collided object and they're not in the same stack. Time to bump this object.
+                    if (obj.GetComponent<SpriteRenderer>().sortingOrder > coll.gameObject.GetComponent<SpriteRenderer>().sortingOrder && !InSameStack(obj, coll.gameObject))
+                    {
+                        // bump object 
+                        obj.transform.position = Vector3.MoveTowards(obj.transform.position, coll.gameObject.transform.position, -0.003f);
+
+                        // if object is card, move its stack
+                        if (GetObjType(obj) == "card" && obj.GetComponent<card_gameplay>().stack.cards.Count > 1)
+                        {
+                            Stack movingstack = obj.GetComponent<card_gameplay>().stack;
+                            movingstack.progressBar.transform.position = new Vector3(movingstack.cards[0].transform.position.x, movingstack.cards[0].transform.position.y + 1.5f);
+                            ArrangeCards(movingstack, false);
+                        }
+                    }
+                }
+            }
+            collList.Clear();
+        }
+
+        // size animation
+        if (hoverObjs.Length > 0)
+        {
+            GameObject frontObj = GetFrontObj(hoverObjs);
+            if (frontObj != null)
+            {
+                MakeBig(frontObj);
+            }
+        }
 
         // keep track of mouse position in world
         worldPos = cam.ScreenToWorldPoint(Input.mousePosition);
@@ -252,21 +262,16 @@ public class manager_gameplay : MonoBehaviour
          * 
          */
 
-
-        /*
-        Debug.Log("stacking:");
-        foreach (GameObject card in cardA.GetComponent<card_gameplay>().stack)
-        {
-            Debug.Log(card.name);
-        }
-        Debug.Log("and");
-        foreach (GameObject card in cardB.GetComponent<card_gameplay>().stack)
-        {
-            Debug.Log(card.name);
-        }
-        */
-
         // the "ToList" here creates a copy of stackA to enumerate through since cards are being removed from stack A
+        StopCombining(stackA);
+        StopCombining(stackB);
+        // stackB.progressBar = stackA.progressBar;
+        // stackA.progressBar = null;
+
+
+
+
+
         foreach (GameObject card in stackA.cards.ToList())
         {
             AddCardToStack(card, stackB);
@@ -282,11 +287,11 @@ public class manager_gameplay : MonoBehaviour
         }
         else
         {
-            return ArrangeCards(stackB);
+            return ArrangeCards(stackB, true);
         }
     }
 
-    private Stack ArrangeCards(Stack stack)
+    private Stack ArrangeCards(Stack stack, bool updateRL)
     {
         /* Arranges stack "stack" physically based on its list order.
          * 
@@ -297,16 +302,14 @@ public class manager_gameplay : MonoBehaviour
          */
 
 
-        //Debug.Log("Arranging: ");
         // physically arrange the cards in a stack List structure
         float i = 0.0f;
         foreach (GameObject card in stack.cards)
         {
-            // Debug.Log(string.Format("card {0} at {1} becomes {2}", card.name, card.transform.position.y, stack[0].transform.position.y - 0.5f));
             card.transform.position = new Vector3(stack.cards[0].transform.position.x, stack.cards[0].transform.position.y - i, 0);
             i += 0.5f;
-            card.GetComponent<SpriteRenderer>().sortingOrder = currentRenderLayer;
-            currentRenderLayer++;
+            if (updateRL)
+            UpdateRenderLayer(card);
         }
         return stack;
     }
@@ -323,7 +326,7 @@ public class manager_gameplay : MonoBehaviour
         // removes given card from its stack and returns the new stack
         card.GetComponent<card_gameplay>().stack.cards.Remove(card);
         // arrange old stack
-        ArrangeCards(card.GetComponent<card_gameplay>().stack);
+        ArrangeCards(card.GetComponent<card_gameplay>().stack, true);
         // create new list for this card's stack
         card.GetComponent<card_gameplay>().stack = CreateStack();
         card.GetComponent<card_gameplay>().stack.cards.Add(card);
@@ -378,9 +381,7 @@ public class manager_gameplay : MonoBehaviour
         // for each card close enough
         foreach (Collider2D coll in stackCheck)
         {
-
-            List<System.Type> compList = GetCompList(coll.gameObject);
-            if (compList.Contains(typeof(card_gameplay)))
+            if (GetObjType(coll.gameObject) == "card")
             {
                 // skip the card itself and any cards in stack
                 if (coll.gameObject == card || card.GetComponent<card_gameplay>().stack.cards.Contains(coll.gameObject))
@@ -419,8 +420,7 @@ public class manager_gameplay : MonoBehaviour
          */
 
         GameObject newCard = Instantiate(cardPrefab, new Vector3(position.x, position.y, 0), Quaternion.identity);
-        newCard.GetComponent<SpriteRenderer>().sortingOrder = currentRenderLayer;
-        currentRenderLayer++;
+        UpdateRenderLayer(newCard);
 
         // create new stack for card
 
@@ -558,19 +558,9 @@ public class manager_gameplay : MonoBehaviour
          * 
          */
 
-        //Debug.Log(string.Format("Removing card {0} from stack {1}", card.name, card.GetComponent<card_gameplay>().stack));
         card.GetComponent<card_gameplay>().stack.cards.Remove(card);
-        //Debug.Log(string.Format("Setting card {0} stack to {1}", card.name, stack));
         card.GetComponent<card_gameplay>().stack = stack;
-        //Debug.Log(string.Format("adding card {0} to stack {1}", card.name, stack));
         stack.cards.Add(card);
-        //Debug.Log("returning stack: ");
-        /*
-        foreach (GameObject scard in stack)
-        {
-            Debug.Log(scard.name);
-        }
-        */
         return stack;
     }
 
@@ -587,7 +577,7 @@ public class manager_gameplay : MonoBehaviour
         // removes given card from its stack and returns the new stack
         stack.cards.Remove(card);
         // arrange old stack
-        ArrangeCards(stack);
+        ArrangeCards(stack, true);
         Destroy(card);
         return stack;
     }
@@ -627,14 +617,14 @@ public class manager_gameplay : MonoBehaviour
         {
             barPiece.GetComponent<SpriteRenderer>().enabled = false;
         }
-        stack.combining = (false, null);
     }
 
-    private void TurnOnProgressBar(Stack stack)
+    private void TurnOnProgressBar(Stack stack)        
     {
         stack.progressBar.transform.position = new Vector3(stack.cards[0].transform.position.x, stack.cards[0].transform.position.y + 1.5f);
         foreach (Transform barPiece in stack.progressBar.transform)
         {
+            UpdateRenderLayer(barPiece.gameObject);
             barPiece.GetComponent<SpriteRenderer>().enabled = true;
         }
     }
@@ -661,7 +651,7 @@ public class manager_gameplay : MonoBehaviour
 
     private Stack BeginCombining(Stack stack, CardCombo combo)
     {
-        _ = ArrangeCards(stack);
+        ArrangeCards(stack, true);
         stack.combining = (true, combo);
         TurnOnProgressBar(stack);
         return stack;
@@ -681,7 +671,6 @@ public class manager_gameplay : MonoBehaviour
         {
             if (stack.cards.Count == 0 && stack != heldStack)
             {
-                // Debug.Log(string.Format("Deleting Stack {0}", stack));
                 DeleteStack(stack);
             }
         }
@@ -711,7 +700,6 @@ public class manager_gameplay : MonoBehaviour
             int raritiesCount = pack.Rarities.Count();
             if (raritiesCount != packCount)
             {
-                Debug.Log("fixing mismatch number of Rarities and PossibleCards in pack " + pack);
                 if (raritiesCount > packCount)
                     pack.Rarities.RemoveRange(raritiesCount - (raritiesCount - packCount), (raritiesCount - packCount));
                 else if (packCount > raritiesCount)
@@ -731,8 +719,7 @@ public class manager_gameplay : MonoBehaviour
         pack.Contents = new();
         // instantiating actual pack GameObject
         pack.packObj = Instantiate(packPrefab.packObjPrefab, position, Quaternion.identity);
-        pack.packObj.GetComponent<SpriteRenderer>().sortingOrder = currentRenderLayer;
-        currentRenderLayer++;
+        UpdateRenderLayer(pack.packObj);
         pack.packObj.GetComponent<pack_gameplay>().pack = pack;
         // creating a pool of possible cards to add to pack
         List<GameObject> cardPool = new();
@@ -754,12 +741,12 @@ public class manager_gameplay : MonoBehaviour
 
     private List<System.Type> GetCompList(GameObject obj)
     {
-        List<System.Type> compList = new();
-        foreach (Component comp in obj.GetComponents(typeof(Component)))
-        {
-            compList.Add(comp.GetType());
-        }
-        return compList;
+            List<System.Type> compList = new();
+            foreach (Component comp in obj.GetComponents(typeof(Component)))
+            {
+                compList.Add(comp.GetType());
+            }
+            return compList;
     }
 
     private void DeletePack(Pack pack)
@@ -773,6 +760,69 @@ public class manager_gameplay : MonoBehaviour
         }
         pack.Contents.Clear();
         pack.Contents = null;
+    }
+
+    private bool InSameStack (GameObject objA, GameObject objB)
+    {
+        if (GetObjType(objA) == "card" && GetObjType(objB) == "card" && objA.GetComponent<card_gameplay>().stack == objB.GetComponent<card_gameplay>().stack)
+            return true;
+        else
+            return false;
+    }
+
+    private string GetObjType(GameObject obj)
+    {
+        if (obj != null)
+        {
+            if (GetCompList(obj).Contains(typeof(pack_gameplay)))
+            {
+                return "pack";
+            }
+            if (GetCompList(obj).Contains(typeof(card_gameplay)))
+            {
+                return "card";
+            }
+        }
+        return null;
+    }
+
+    private void MakeBig(GameObject obj)
+    {
+        if (obj != null)
+        {
+            obj.transform.localScale = new Vector3(1.2f, 1.2f, 1);
+            StartCoroutine(MakeSmall(obj));
+        }
+    }
+
+    private IEnumerator MakeSmall(GameObject obj)
+    {
+        yield return new WaitForSeconds(0.1f);
+        if (obj != null && (hoverObjs.Length == 0 || GetFrontObj(hoverObjs) != obj))
+        {
+            obj.transform.localScale = new Vector3(1, 1, 1);
+        }
+    }
+
+    private void UpdateRenderLayer(GameObject obj)
+    {
+        if (obj.GetComponent<SpriteRenderer>().sortingOrder != currentRenderLayer - 1)
+        {
+            obj.GetComponent<SpriteRenderer>().sortingOrder = currentRenderLayer;
+            currentRenderLayer++;
+        }
+    }
+
+    private void NormalizeRenderLayers()
+    {
+        allObjects = allObjects.OrderBy(i => i.GetComponent<SpriteRenderer>().sortingOrder).ToList();
+        int i = 0;
+        foreach (GameObject obj in allObjects)
+        {
+            obj.GetComponent<SpriteRenderer>().sortingOrder = i;
+            i++;
+        }
+        currentRenderLayer = i;
     }
 }
 
