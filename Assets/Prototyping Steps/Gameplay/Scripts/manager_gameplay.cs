@@ -68,6 +68,7 @@ public class manager_gameplay : MonoBehaviour
         comboList = DefineComboList();
         // instantiate packList
         packList = DefinePackList();
+
         foreach (PackPrefab packPrefab in packList)
         {
             SpawnPack(packPrefab, new Vector2(Random.Range(-5.5f, 5.5f), Random.Range(-2.5f, 2.5f)));
@@ -83,24 +84,34 @@ public class manager_gameplay : MonoBehaviour
         // if left mouse is not down
         if (!Input.GetMouseButton(0))
         {
-            heldPack = null;
             // if a card was just dropped
             if (MouseRelease == 1)
             {
-                CheckForEmptyStacks();
-                // get the closest card not in current stack to dropped card
-                GameObject closest = GetClosestCard(heldStack.cards[0]);
-                // if closest card after dropping the card was within range
-                if (closest != null && Vector3.Distance(heldStack.cards[0].transform.position, closest.transform.position) < 0.8)
+                // if a pack was just dropped
+                if (heldPack != null)
                 {
-                    StackCards(heldStack, closest.GetComponent<card_gameplay>().stack);
+                    // re-enable its box collider
+                    heldPack.packObj.GetComponent<Collider2D>().enabled = true;
+                    heldPack = null;
                 }
-                else
+                // if card/stack was just dropped
+                else if (heldStack.cards.Count > 0)
                 {
-                    // creating new stack since StackCards is cleared on MouseUp
-                    StackCards(heldStack, CreateStack());
+                    CheckForEmptyStacks();
+                    // get the closest card not in current stack to dropped card
+                    GameObject closest = GetClosestCard(heldStack.cards[0]);
+                    // if closest card after dropping the card was within range
+                    if (closest != null && Vector3.Distance(heldStack.cards[0].transform.position, closest.transform.position) < 0.8)
+                    {
+                        StackCards(heldStack, closest.GetComponent<card_gameplay>().stack);
+                    }
+                    else
+                    {
+                        // creating new stack since StackCards is cleared on MouseUp
+                        StackCards(heldStack, CreateStack());
+                    }
+                    heldStack = CreateStack();
                 }
-                heldStack = CreateStack();
                 // events after card was dropped are now done
                 MouseRelease = 0;
                 cardOffset = 0;
@@ -137,6 +148,9 @@ public class manager_gameplay : MonoBehaviour
                         Stack oldStack = front.GetComponent<card_gameplay>().stack;
                         // gets all cards from grabbed card to bottom of stack and adds them to "heldStack"
                         heldStack = StackCards(CreateStack(front.GetComponent<card_gameplay>().stack.cards.GetRange(cardPos, front.GetComponent<card_gameplay>().stack.cards.Count - cardPos)), heldStack);
+                        // disable interactions with held stack
+                        foreach (GameObject card in front.GetComponent<card_gameplay>().stack.cards)
+                            card.GetComponent<BoxCollider2D>().enabled = false;
                         var combining = CardsCanCombine(oldStack);
                         if (combining.Item1)
                         {
@@ -159,7 +173,9 @@ public class manager_gameplay : MonoBehaviour
                         Pack pack = front.GetComponent<pack_gameplay>().pack;
                         cardOffset = pack.packObj.transform.position.y - worldPos.y;
                         heldPack = pack;
+                        MouseRelease = 1;
                         UpdateRenderLayer(pack.packObj);
+                        front.GetComponent<BoxCollider2D>().enabled = false;
                     }
                 }
             }
@@ -206,7 +222,8 @@ public class manager_gameplay : MonoBehaviour
         }
 
         // card/stack/pack bumping
-        foreach (GameObject obj in allObjects)
+
+        /*foreach (GameObject obj in allObjects)
         {
             if (obj.GetComponent<Collider2D>().OverlapCollider(conFil, collList) > 0)
             {
@@ -233,7 +250,7 @@ public class manager_gameplay : MonoBehaviour
                 }
             }
             collList.Clear();
-        }
+        }*/
 
         // size animation
         if (hoverObjs.Length > 0)
@@ -268,27 +285,24 @@ public class manager_gameplay : MonoBehaviour
         // stackB.progressBar = stackA.progressBar;
         // stackA.progressBar = null;
 
-
-
-
-
         foreach (GameObject card in stackA.cards.ToList())
         {
             AddCardToStack(card, stackB);
             stackA.cards.Remove(card);
         }
         DeleteStack(stackA);
+        foreach (GameObject card in stackB.cards)
+        {
+            card.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
+            card.GetComponent<Collider2D>().enabled = true;
+        }
         var combineable = CardsCanCombine(stackB);
         // if stack matches a recipe from comboList
         if (combineable.Item1)
         {
             BeginCombining(stackB, combineable.Item2);
-            return null;
-        }
-        else
-        {
-            return ArrangeCards(stackB, true);
-        }
+        }        
+        return ArrangeCards(stackB, true); 
     }
 
     private Stack ArrangeCards(Stack stack, bool updateRL)

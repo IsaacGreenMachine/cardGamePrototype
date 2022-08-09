@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8687087463376147869}
   - component: {fileID: -4978938968949951538}
   - component: {fileID: 5101890093261956962}
+  - component: {fileID: 7690339397594021417}
   m_Layer: 0
   m_Name: Arcane Pack
   m_TagString: Untagged
@@ -99,6 +100,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pack: {fileID: 0}
+  type: 
 --- !u!61 &5101890093261956962
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -125,3 +127,24 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1.62, y: 2.38}
   m_EdgeRadius: 0
+--- !u!50 &7690339397594021417
+Rigidbody2D:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2576007227432717138}
+  m_BodyType: 0
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDrag: 0
+  m_AngularDrag: 0.05
+  m_GravityScale: 0
+  m_Material: {fileID: 0}
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 4
