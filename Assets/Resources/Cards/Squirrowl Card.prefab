@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7211988237770283490}
   - component: {fileID: 7211988237770283517}
   - component: {fileID: 8165450775509085306}
+  - component: {fileID: 6885793025233889423}
   m_Layer: 0
   m_Name: Squirrowl Card
   m_TagString: Untagged
@@ -131,6 +132,7 @@ MonoBehaviour:
   stack: {fileID: 0}
   cardName: Squirrowl
   type: 
+  joint: {fileID: 0}
 --- !u!50 &8165450775509085306
 Rigidbody2D:
   serializedVersion: 4
@@ -144,7 +146,7 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDrag: 0
+  m_LinearDrag: 10
   m_AngularDrag: 0.05
   m_GravityScale: 0
   m_Material: {fileID: 0}
@@ -152,3 +154,21 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
+--- !u!255 &6885793025233889423
+FixedJoint2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7211988237770283494}
+  m_Enabled: 0
+  serializedVersion: 4
+  m_EnableCollision: 0
+  m_ConnectedRigidBody: {fileID: 0}
+  m_BreakForce: Infinity
+  m_BreakTorque: Infinity
+  m_AutoConfigureConnectedAnchor: 0
+  m_Anchor: {x: 0, y: 0}
+  m_ConnectedAnchor: {x: 0, y: 0}
+  m_DampingRatio: 0
+  m_Frequency: 30

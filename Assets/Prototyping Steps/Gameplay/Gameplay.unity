@@ -183,6 +183,8 @@ MonoBehaviour:
   allPacks: []
   packList: []
   packFlag: 0
+  stackCardDistance: 0
+  stackCreateDistance: 0
 --- !u!1 &545821731
 GameObject:
   m_ObjectHideFlags: 0

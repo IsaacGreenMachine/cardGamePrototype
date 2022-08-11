@@ -39,6 +39,10 @@ public class manager_gameplay : MonoBehaviour
     public List<PackPrefab> packList;
     // keeps track of mouse click on packs
     public int packFlag;
+    // how far cards are offset from each other in a stack
+    public float stackCardDistance;
+    // how far cards must be to create a stack
+    public float stackCreateDistance;
 
     // used in card bumping
     private ContactFilter2D conFil = new();
@@ -50,6 +54,9 @@ public class manager_gameplay : MonoBehaviour
         allCards = new();
         allPacks = new();
         allObjects = new();
+
+        stackCardDistance = 0.5f;
+        stackCreateDistance = 0.8f;
 
         // instantiate heldStack stack
         heldStack = CreateStack();
@@ -101,7 +108,7 @@ public class manager_gameplay : MonoBehaviour
                     // get the closest card not in current stack to dropped card
                     GameObject closest = GetClosestCard(heldStack.cards[0]);
                     // if closest card after dropping the card was within range
-                    if (closest != null && Vector3.Distance(heldStack.cards[0].transform.position, closest.transform.position) < 0.8)
+                    if (closest != null && Vector3.Distance(heldStack.cards[0].transform.position, closest.transform.position) < stackCreateDistance)
                     {
                         StackCards(heldStack, closest.GetComponent<card_gameplay>().stack);
                     }
@@ -118,19 +125,21 @@ public class manager_gameplay : MonoBehaviour
             }
         }
 
-        // left mouse is down and cards are held
+        // left mouse is down and stack is held
         else if (heldStack.cards.Count != 0)
         {
             // move card[0] to mouse (offset so card is centered horiz. but not vertically)
-            heldStack.cards[0].transform.position = new Vector3(worldPos.x, worldPos.y + cardOffset, 0);
+            //heldStack.cards[0].transform.position = new Vector3(worldPos.x, worldPos.y + cardOffset, 0);
+            heldStack.cards[0].GetComponent<Rigidbody2D>().MovePosition(new Vector2(worldPos.x, worldPos.y + cardOffset));
             // move all other cards to adjust
-            ArrangeCards(heldStack, false);
+            // ArrangeCards(heldStack, false);
         }
 
         // left mouse down and pack is currently held
         else if (heldPack != null)
         {
-            heldPack.packObj.transform.position = new Vector3(worldPos.x, worldPos.y + cardOffset, 0);
+            // heldPack.packObj.transform.position = new Vector3(worldPos.x, worldPos.y + cardOffset, 0);
+            heldPack.packObj.GetComponent<Rigidbody2D>().MovePosition(new Vector2(worldPos.x, worldPos.y + cardOffset));
         }
 
         // left mouse is down and no card/pack is held
@@ -151,6 +160,7 @@ public class manager_gameplay : MonoBehaviour
                         // disable interactions with held stack
                         foreach (GameObject card in front.GetComponent<card_gameplay>().stack.cards)
                             card.GetComponent<BoxCollider2D>().enabled = false;
+                        EnableCollisions(heldStack, oldStack);
                         var combining = CardsCanCombine(oldStack);
                         if (combining.Item1)
                         {
@@ -291,18 +301,41 @@ public class manager_gameplay : MonoBehaviour
             stackA.cards.Remove(card);
         }
         DeleteStack(stackA);
+        ArrangeCards(stackB, true);
+        int i = 0;
         foreach (GameObject card in stackB.cards)
         {
-            card.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
+            // setting up card joints in stack
+            FixedJoint2D joint = card.GetComponent<FixedJoint2D>();
+            if (i > 0)
+            {
+                joint.enabled = true;
+                joint.connectedAnchor = new Vector2(0, -stackCardDistance);
+                joint.connectedBody = stackB.cards[i - 1].GetComponent<Rigidbody2D>();
+            }
+            else
+            {
+                joint.enabled = false;
+                joint.connectedAnchor = Vector2.zero;
+                joint.connectedBody = null;
+            }
+            
+            foreach (GameObject otherCard in stackB.cards)
+            {
+                if (card != otherCard)
+                    Physics2D.IgnoreCollision(card.GetComponent<Collider2D>(), otherCard.GetComponent<Collider2D>(), true);
+            }
+            // card.GetComponent<Rigidbody2D>().bodyType = RigidbodyType2D.Static;
             card.GetComponent<Collider2D>().enabled = true;
+            i++;
         }
         var combineable = CardsCanCombine(stackB);
         // if stack matches a recipe from comboList
         if (combineable.Item1)
         {
             BeginCombining(stackB, combineable.Item2);
-        }        
-        return ArrangeCards(stackB, true); 
+        }
+        return stackB; 
     }
 
     private Stack ArrangeCards(Stack stack, bool updateRL)
@@ -321,7 +354,7 @@ public class manager_gameplay : MonoBehaviour
         foreach (GameObject card in stack.cards)
         {
             card.transform.position = new Vector3(stack.cards[0].transform.position.x, stack.cards[0].transform.position.y - i, 0);
-            i += 0.5f;
+            i += stackCardDistance;
             if (updateRL)
             UpdateRenderLayer(card);
         }
@@ -837,6 +870,25 @@ public class manager_gameplay : MonoBehaviour
             i++;
         }
         currentRenderLayer = i;
+    }
+
+    private void EnableCollisions(Stack stackA, Stack stackB)
+    {
+        foreach(GameObject card in stackA.cards)
+        {
+            foreach(GameObject otherCard in stackB.cards)
+            {
+                Physics2D.IgnoreCollision(card.GetComponent<Collider2D>(), otherCard.GetComponent<Collider2D>(), false);
+            }
+        }
+
+        foreach (GameObject card in stackB.cards)
+        {
+            foreach (GameObject otherCard in stackA.cards)
+            {
+                Physics2D.IgnoreCollision(card.GetComponent<Collider2D>(), otherCard.GetComponent<Collider2D>(), false);
+            }
+        }
     }
 }
 

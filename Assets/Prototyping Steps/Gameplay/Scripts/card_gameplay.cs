@@ -12,6 +12,7 @@ public class card_gameplay : MonoBehaviour
     public Stack stack;
     public string cardName;
     public string type;
+    public FixedJoint2D joint;
     // Start is called before the first frame update
     void Start()
     {
@@ -20,6 +21,8 @@ public class card_gameplay : MonoBehaviour
         managerScript = manager.GetComponent<manager_gameplay>();
         myCollider = this.GetComponent<Collider2D>();
         type = "card";
+        joint = GetComponent<FixedJoint2D>();
+        joint.enabled = false;
     }
 
     // Update is called once per frame
